@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ArrowRight, Glasses } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -20,7 +20,7 @@ type Product = {
   size?: string | null;
 };
 
-export default function ShopPage() {
+function ShopContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -31,7 +31,9 @@ export default function ShopPage() {
   const collection = searchParams.get("collection");
 
   const filter: Filter =
-    category === "fragrance" || category === "sunglasses" ? category : "all";
+    category === "fragrance" || category === "sunglasses"
+      ? category
+      : "all";
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -55,21 +57,9 @@ export default function ShopPage() {
     fetchProducts();
   }, []);
 
-  /*
-   * FILTER PRODUCTS
-   *
-   * Type filter:
-   * - all
-   * - fragrance
-   * - sunglasses
-   *
-   * Collection filter:
-   * - For Him
-   * - For Her
-   * - Unisex
-   */
   const filteredProducts = products.filter((product) => {
-    const matchesType = filter === "all" || product.type === filter;
+    const matchesType =
+      filter === "all" || product.type === filter;
 
     const matchesCollection =
       !collection ||
@@ -89,6 +79,7 @@ export default function ShopPage() {
   return (
     <main className="min-h-screen bg-[#FFF9FF] pt-24">
       <section className="mx-auto max-w-7xl px-6 py-16">
+
         {/* HEADER */}
         <div className="text-center">
           <p
@@ -172,7 +163,8 @@ export default function ShopPage() {
               Loading our collection...
             </p>
           </div>
-        ) : filter === "sunglasses" && filteredProducts.length === 0 ? (
+        ) : filter === "sunglasses" &&
+          filteredProducts.length === 0 ? (
           /* SUNGLASSES COMING SOON */
           <div
             className="mx-auto mt-16 max-w-3xl overflow-hidden rounded-3xl border border-[#41004C]/10 bg-white p-10 text-center shadow-sm md:p-16"
@@ -264,8 +256,10 @@ export default function ShopPage() {
 
                       {product.size && (
                         <p className="mt-1 text-sm text-[#41004C]/50">
-                          {product.type === "fragrance" ? "Size" : "Frame"}:{" "}
-                          {product.size}
+                          {product.type === "fragrance"
+                            ? "Size"
+                            : "Frame"}
+                          : {product.size}
                         </p>
                       )}
                     </div>
@@ -292,5 +286,29 @@ export default function ShopPage() {
         )}
       </section>
     </main>
+  );
+}
+
+function ShopLoading() {
+  return (
+    <main className="min-h-screen bg-[#FFF9FF] pt-24">
+      <section className="mx-auto max-w-7xl px-6 py-16">
+        <div className="flex min-h-125 flex-col items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#F6EAF8] border-t-[#750080]" />
+
+          <p className="mt-5 text-sm text-[#41004C]/50">
+            Loading our collection...
+          </p>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<ShopLoading />}>
+      <ShopContent />
+    </Suspense>
   );
 }
