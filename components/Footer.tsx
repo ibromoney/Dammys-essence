@@ -18,7 +18,6 @@ export default function Footer() {
 
               <div>
                 <span className="footer-logo-name">DAMMYS</span>
-
                 <span className="footer-logo-sub">ESSENCE</span>
               </div>
             </div>
@@ -28,12 +27,35 @@ export default function Footer() {
               become part of your identity.
             </p>
 
+            {/* SOCIAL MEDIA */}
             <div className="footer-socials">
-              <a href="#" aria-label="Facebook">
+              {/* Facebook */}
+              <a
+                href="#"
+                aria-label="Facebook"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <span className="social-letter">f</span>
               </a>
 
-              <a href="#" aria-label="Twitter">
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/dammys_essence.ng?stkn=dDNpN3RiMHdmNTl2&utm_source=qr"
+                aria-label="Instagram"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="social-letter">IG</span>
+              </a>
+
+              {/* X / Twitter */}
+              <a
+                href="#"
+                aria-label="Twitter"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <span className="social-letter">𝕏</span>
               </a>
             </div>
@@ -77,15 +99,15 @@ export default function Footer() {
           >
             <h3>GET IN TOUCH</h3>
 
-            <a href="mailto:hello@dammysessence.com">
-              hello@dammysessence.com
+            <a href="mailto:dammysessenceng@gmail.com">
+              dammysessenceng@gmail.com
             </a>
 
-            <a href="tel:+2340000000000">
-              +234 000 000 0000
+            <a href="tel:+2347086888354">
+              +2347086888354
             </a>
 
-            <p>Lagos, Nigeria</p>
+            <p>Kwara State, Osun State</p>
           </div>
         </div>
 

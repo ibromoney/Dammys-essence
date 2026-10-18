@@ -95,10 +95,10 @@ export default function ContactPage() {
                   </p>
 
                   <a
-                    href="mailto:hello@dammysessence.com"
+                    href="mailto:dammysessenceng@gmail.com"
                     className="mt-1 block text-sm transition hover:text-[#D9B7DF]"
                   >
-                    hello@dammysessence.com
+                    dammysessenceng@gmail.com
                   </a>
                 </div>
               </div>
@@ -119,10 +119,10 @@ export default function ContactPage() {
                   </p>
 
                   <a
-                    href="tel:+2340000000000"
+                    href="tel:+2347086888354"
                     className="mt-1 block text-sm transition hover:text-[#D9B7DF]"
                   >
-                    +234 000 000 0000
+                    +2347086888354
                   </a>
                 </div>
               </div>
@@ -143,7 +143,7 @@ export default function ContactPage() {
                   </p>
 
                   <p className="mt-1 text-sm">
-                    Lagos, Nigeria
+                    Kwara State, Osun State
                   </p>
                 </div>
               </div>
@@ -160,16 +160,20 @@ export default function ContactPage() {
               </p>
 
               <div className="mt-4 flex gap-3">
+                {/* Instagram */}
                 <a
-                  href="#"
+                  href="https://www.instagram.com/dammys_essence.ng?stkn=dDNpN3RiMHdmNTl2&utm_source=qr"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label="Instagram"
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 transition hover:bg-white hover:text-[#41004C]"
                 >
                   <span className="text-sm font-semibold">IG</span>
                 </a>
 
+                {/* Email */}
                 <a
-                  href="#"
+                  href="mailto:dammysessenceng@gmail.com"
                   aria-label="Email"
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 transition hover:bg-white hover:text-[#41004C]"
                 >
