@@ -12,7 +12,8 @@ import {
 import { createClient } from "@/lib/supabase/client";
 
 export default function AdminLoginPage() {
-    const router = useRouter();
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -22,48 +23,112 @@ export default function AdminLoginPage() {
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (loading) return;
+
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const { data, error: loginError } =
-      await supabase.auth.signInWithPassword({
-        email,
+      /*
+       * STEP 1: AUTHENTICATE
+       */
+      const loginPromise = supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
 
-    if (loginError) {
-      setError(loginError.message);
+      const loginTimeout = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(
+            new Error(
+              "Login request timed out. Please check your internet connection and try again."
+            )
+          );
+        }, 15000);
+      });
+
+      const { data, error: loginError } = await Promise.race([
+        loginPromise,
+        loginTimeout,
+      ]);
+
+      if (loginError) {
+        setError(loginError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!data.user) {
+        setError("Unable to sign in. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      /*
+       * STEP 2: CHECK ADMIN ACCESS
+       */
+      const adminPromise = supabase
+        .from("admin_users")
+        .select("id")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      const adminTimeout = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(
+            new Error(
+              "Admin verification timed out. Please check your Supabase connection."
+            )
+          );
+        }, 10000);
+      });
+
+      const { data: admin, error: adminError } = await Promise.race([
+        adminPromise,
+        adminTimeout,
+      ]);
+
+      if (adminError) {
+        await supabase.auth.signOut();
+
+        setError(
+          `Admin verification failed: ${adminError.message}`
+        );
+
+        setLoading(false);
+        return;
+      }
+
+      if (!admin) {
+        await supabase.auth.signOut();
+
+        setError("You do not have admin access.");
+
+        setLoading(false);
+        return;
+      }
+
+      /*
+       * STEP 3: SUCCESS
+       */
+      router.push("/admin");
+    } catch (error) {
+      console.error("Admin login error:", error);
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while signing in.";
+
+      setError(message);
       setLoading(false);
-      return;
     }
-
-    if (!data.user) {
-      setError("Unable to sign in. Please try again.");
-      setLoading(false);
-      return;
-    }
-
-    const { data: admin, error: adminError } = await supabase
-      .from("admin_users")
-      .select("id")
-      .eq("id", data.user.id)
-      .maybeSingle();
-
-    if (adminError || !admin) {
-      await supabase.auth.signOut();
-
-      setError("You do not have admin access.");
-      setLoading(false);
-      return;
-    }
-
-  router.push("/admin");
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#FFF9FF] px-6 py-12">
+    <main className="flex  min-h-screen items-center justify-center bg-[#FFF9FF] px-6 py-12 ">
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="mb-10 text-center">
@@ -142,7 +207,9 @@ export default function AdminLoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-[#41004C]/40 transition hover:text-[#750080]"
                   aria-label={
-                    showPassword ? "Hide password" : "Show password"
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
                   }
                 >
                   {showPassword ? (
@@ -157,7 +224,9 @@ export default function AdminLoginPage() {
             {/* Error */}
             {error && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm leading-6 text-red-600">
+                  {error}
+                </p>
               </div>
             )}
 

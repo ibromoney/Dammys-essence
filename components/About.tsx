@@ -10,7 +10,7 @@ import {
 
 export default function About() {
   return (
-    <main className="min-h-screen bg-[#FFF9FF] pt-24">
+    <main className="min-h-screen bg-[#FFF9FF] pt-17">
 
       {/* HERO */}
       <section className="relative overflow-hidden bg-[#41004C]">

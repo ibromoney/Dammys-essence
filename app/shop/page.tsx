@@ -202,7 +202,7 @@ function ShopContent() {
             <button
               type="button"
               onClick={() => changeFilter("all")}
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#41004C] px-7 py-3.5 text-sm font-medium text-[#FFF9FF] transition hover:bg-[#750080]"
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#41004C] px-7 py-3.5 text-sm font-medium text-white transition hover:bg-[#750080]"
               data-aos="zoom-in"
               data-aos-delay="400"
             >
@@ -273,9 +273,10 @@ function ShopContent() {
                     {product.description}
                   </p>
 
+                  {/* VIEW PRODUCT BUTTON */}
                   <Link
                     href={`/shop/${product.id}`}
-                    className="mt-6 flex w-full items-center justify-center rounded-full bg-[#41004C] px-6 py-3 text-sm font-medium text-[#FFF9FF] transition hover:bg-[#750080]"
+                    className="mt-6 flex w-full items-center justify-center rounded-full bg-[#41004C] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#750080]"
                   >
                     View Product
                   </Link>
