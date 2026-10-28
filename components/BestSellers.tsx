@@ -1,11 +1,13 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
-import { Heart, ArrowRight, ShoppingBag } from "lucide-react";
+import { Heart, ArrowRight, ShoppingBag, Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/client";
+import { useCart, type CartProduct } from "@/context/CartContext";
 
 type Product = {
   id: number;
@@ -21,8 +23,13 @@ type Product = {
 export default function BestSellers() {
   const [products, setProducts] = useState<Product[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
+  const [recentlyAdded, setRecentlyAdded] = useState<number[]>([]);
+
+  const { addToCart } = useCart();
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchProducts = async () => {
       const supabase = createClient();
 
@@ -38,10 +45,16 @@ export default function BestSellers() {
         return;
       }
 
-      setProducts(data ?? []);
+      if (!cancelled) {
+        setProducts((data ?? []) as Product[]);
+      }
     };
 
-    fetchProducts();
+    void fetchProducts();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function toggleWishlist(id: number) {
@@ -52,14 +65,38 @@ export default function BestSellers() {
     );
   }
 
+  function handleAddToCart(product: Product) {
+    const cartProduct: CartProduct = {
+      id: product.id,
+      name: product.name,
+      type: product.type,
+      category: product.category,
+      price: Number(product.price),
+      image: product.image,
+      description: product.description,
+      size: product.size,
+    };
+
+    addToCart(cartProduct);
+
+    setRecentlyAdded((current) =>
+      current.includes(product.id)
+        ? current
+        : [...current, product.id],
+    );
+
+    window.setTimeout(() => {
+      setRecentlyAdded((current) =>
+        current.filter((id) => id !== product.id),
+      );
+    }, 1500);
+  }
+
   return (
     <section className="best-sellers overflow-hidden" id="shop">
       <div className="best-sellers-inner">
         {/* SECTION HEADER */}
-        <div
-          className="best-sellers-header"
-          data-aos="fade-up"
-        >
+        <div className="best-sellers-header" data-aos="fade-up">
           <div>
             <p
               className="best-sellers-eyebrow"
@@ -69,10 +106,7 @@ export default function BestSellers() {
               DISCOVER YOUR SIGNATURE
             </p>
 
-            <h2
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
+            <h2 data-aos="fade-up" data-aos-delay="200">
               Our Best
               <span> Sellers.</span>
             </h2>
@@ -93,6 +127,7 @@ export default function BestSellers() {
         <div className="best-sellers-grid">
           {products.map((product, index) => {
             const isWishlisted = wishlist.includes(product.id);
+            const wasRecentlyAdded = recentlyAdded.includes(product.id);
 
             return (
               <article
@@ -141,11 +176,23 @@ export default function BestSellers() {
                   <button
                     type="button"
                     className="quick-add"
+                    onClick={() => handleAddToCart(product)}
+                    aria-label={`Add ${product.name} to cart`}
+                    aria-live="polite"
                     data-aos="fade-up"
                     data-aos-delay={300 + index * 100}
                   >
-                    <ShoppingBag size={16} />
-                    ADD TO CART
+                    {wasRecentlyAdded ? (
+                      <>
+                        <Check size={16} />
+                        ADDED TO CART
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag size={16} />
+                        ADD TO CART
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -160,20 +207,24 @@ export default function BestSellers() {
 
                     <p>
                       {product.category}
-                      {product.size
-                        ? ` · ${product.size}`
-                        : ""}
+                      {product.size ? ` · ${product.size}` : ""}
                     </p>
                   </div>
 
                   <span className="best-seller-price">
-                    ₦{Number(product.price).toLocaleString()}
+                    ₦{Number(product.price).toLocaleString("en-NG")}
                   </span>
                 </div>
               </article>
             );
           })}
         </div>
+
+        {products.length === 0 && (
+          <p className="py-10 text-center text-[#9b70a3]">
+            Our signature fragrances are being prepared. Please check back soon.
+          </p>
+        )}
       </div>
     </section>
   );

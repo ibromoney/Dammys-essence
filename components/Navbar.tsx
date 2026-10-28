@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useCart } from "@/context/CartContext";
 import {
   Search,
   UserRound,
@@ -12,7 +13,7 @@ import {
   ChevronDown,
   Sparkles,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AOS from "aos";
 import { createClient } from "@/lib/supabase/client";
 
@@ -27,56 +28,66 @@ type Product = {
   size?: string | null;
 };
 
-type NavbarProps = {
-  cartCount?: number;
-};
+export default function Navbar() {
+  const { cartCount } = useCart();
 
-export default function Navbar({
-  cartCount = 0,
-}: NavbarProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Fetch products for the navbar search.
   useEffect(() => {
+    let cancelled = false;
+
     const fetchProducts = async () => {
-      const supabase = createClient();
+      try {
+        const supabase = createClient();
 
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
+        const { data, error } = await supabase
+          .from("products")
+          .select("*");
 
-      if (error) {
-        console.error("Error fetching products:", error);
-        return;
+        if (error) {
+          console.error("Product fetch failed:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+          });
+          return;
+        }
+
+        if (!cancelled) {
+          setProducts((data ?? []) as Product[]);
+        }
+      } catch (error) {
+        console.error("Unexpected product-fetch error:", error);
       }
-
-      setProducts(data ?? []);
     };
 
-    fetchProducts();
+    void fetchProducts();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  /*
-   * Refresh AOS whenever the mobile menu or search panel changes.
-   * This allows newly opened elements to animate correctly.
-   */
+  // Refresh AOS when interactive navbar panels change.
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       AOS.refresh();
     }, 100);
 
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [menuOpen, shopOpen, searchOpen]);
 
-  const closeMenu = () => {
+  const closeMenu = useCallback(() => {
     setMenuOpen(false);
     setShopOpen(false);
     setSearchOpen(false);
-  };
+  }, []);
 
   const searchResults =
     searchTerm.trim().length > 0
@@ -84,7 +95,7 @@ export default function Navbar({
           .filter((product) =>
             `${product.name} ${product.category} ${product.type}`
               .toLowerCase()
-              .includes(searchTerm.toLowerCase())
+              .includes(searchTerm.trim().toLowerCase())
           )
           .slice(0, 5)
       : [];
@@ -97,11 +108,7 @@ export default function Navbar({
       data-aos-easing="ease-out-cubic"
     >
       <div className="nav-inner">
-
-        {/* =====================================================
-            LOGO
-        ====================================================== */}
-
+        {/* LOGO */}
         <Link
           href="/"
           className="brand-logo group"
@@ -121,16 +128,11 @@ export default function Navbar({
           />
         </Link>
 
-        {/* =====================================================
-            NAVIGATION
-        ====================================================== */}
-
+        {/* DESKTOP AND MOBILE NAVIGATION */}
         <nav
           className={`nav-links ${menuOpen ? "open" : ""}`}
           aria-label="Main navigation"
         >
-          {/* HOME */}
-
           <Link
             href="/"
             className="active"
@@ -142,8 +144,7 @@ export default function Navbar({
             Home
           </Link>
 
-          {/* SHOP */}
-
+          {/* SHOP DROPDOWN */}
           <div
             className="shop-dropdown"
             data-aos="fade-down"
@@ -160,7 +161,6 @@ export default function Navbar({
               aria-expanded={shopOpen}
             >
               <span>Shop</span>
-
               <ChevronDown
                 size={15}
                 className={`shop-chevron ${
@@ -206,8 +206,6 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* ABOUT */}
-
           <Link
             href="/about"
             onClick={closeMenu}
@@ -217,8 +215,6 @@ export default function Navbar({
           >
             About
           </Link>
-
-          {/* CONTACT */}
 
           <Link
             href="/contact"
@@ -231,22 +227,18 @@ export default function Navbar({
           </Link>
         </nav>
 
-        {/* =====================================================
-            ACTIONS
-        ====================================================== */}
-
+        {/* NAVBAR ACTIONS */}
         <div
           className="nav-actions"
           data-aos="fade-left"
           data-aos-delay="200"
           data-aos-duration="800"
         >
-          {/* SEARCH */}
-
+          {/* SEARCH BUTTON */}
           <button
             type="button"
             className="icon-button group"
-            aria-label="Search"
+            aria-label={searchOpen ? "Close search" : "Search"}
             aria-expanded={searchOpen}
             onClick={() => {
               setSearchOpen((current) => !current);
@@ -268,12 +260,13 @@ export default function Navbar({
             )}
           </button>
 
-          {/* ACCOUNT */}
-
+          {/* ACCOUNT BUTTON */}
           <Link
-            href="/"
+            href="/account"
             className="icon-button account-button group"
-            aria-label="Account"
+            aria-label="My account"
+            title="My Account"
+            onClick={closeMenu}
           >
             <UserRound
               size={22}
@@ -282,12 +275,12 @@ export default function Navbar({
             />
           </Link>
 
-          {/* CART */}
-
+          {/* CART BUTTON */}
           <Link
-            href="/shop"
+            href="/cart"
             className="icon-button group"
             aria-label={`Shopping cart, ${cartCount} items`}
+            onClick={closeMenu}
           >
             <div className="relative">
               <ShoppingCart
@@ -304,14 +297,11 @@ export default function Navbar({
             </div>
           </Link>
 
-          {/* MOBILE MENU */}
-
+          {/* MOBILE MENU BUTTON */}
           <button
             type="button"
             className="icon-button menu-button group"
-            aria-label={
-              menuOpen ? "Close menu" : "Open menu"
-            }
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
             onClick={() => {
               setMenuOpen((current) => !current);
@@ -334,202 +324,169 @@ export default function Navbar({
         </div>
       </div>
 
-     {/* =====================================================
-    SEARCH PANEL
-====================================================== */}
-
-{searchOpen && (
-  <div
-    className="
-      fixed
-      inset-x-0
-      top-18
-      md:top-20.5
-      z-9999
-      flex
-      justify-center
-      px-4
-      pointer-events-none
-    "
-  >
-    <div
-      className="
-        w-full
-        max-w-190
-        pointer-events-auto
-        overflow-hidden
-        rounded-b-2xl
-        border
-        border-[#d9b7df]
-        bg-[#FFF9FF]
-        shadow-[0_20px_60px_rgba(65,0,76,0.20)]
-      "
-      data-aos="fade-down"
-      data-aos-duration="450"
-      data-aos-easing="ease-out-cubic"
-    >
-      {/* SEARCH INPUT */}
-      <div className="p-4 md:p-5">
+      {/* SEARCH PANEL */}
+      {searchOpen && (
         <div
           className="
-            flex
-            items-center
-            gap-3
-            rounded-xl
-            border
-            border-[#d9b7df]
-            bg-white
-            px-4
-            py-3
-            transition-all
-            duration-300
-            focus-within:border-[#750080]
-            focus-within:ring-2
-            focus-within:ring-[#750080]/10
+            fixed inset-x-0 top-18 z-9999
+            flex justify-center px-4
+            pointer-events-none
+            md:top-20.5
           "
         >
-          <Search
-            size={20}
-            strokeWidth={1.5}
-            className="shrink-0 text-[#750080]"
-          />
-
-          <input
-            type="text"
-            autoFocus
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search fragrances..."
+          <div
             className="
-              min-w-0
-              flex-1
-              bg-transparent
-              text-sm
-              text-[#41004C]
-              outline-none
-              placeholder:text-[#9b70a3]
-              md:text-base
+              w-full max-w-190 pointer-events-auto
+              overflow-hidden rounded-b-2xl border
+              border-[#d9b7df] bg-[#FFF9FF]
+              shadow-[0_20px_60px_rgba(65,0,76,0.20)]
             "
-          />
+            data-aos="fade-down"
+            data-aos-duration="450"
+            data-aos-easing="ease-out-cubic"
+          >
+            <div className="p-4 md:p-5">
+              {/* SEARCH INPUT */}
+              <div
+                className="
+                  flex items-center gap-3 rounded-xl
+                  border border-[#d9b7df] bg-white px-4 py-3
+                  transition-all duration-300
+                  focus-within:border-[#750080]
+                  focus-within:ring-2
+                  focus-within:ring-[#750080]/10
+                "
+              >
+                <Search
+                  size={20}
+                  strokeWidth={1.5}
+                  className="shrink-0 text-[#750080]"
+                />
 
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm("")}
-              className="
-                shrink-0
-                text-xs
-                font-medium
-                text-[#750080]
-                transition-colors
-                hover:text-[#41004C]
-              "
-            >
-              Clear
-            </button>
-          )}
-        </div>
-
-        {/* SEARCH RESULTS */}
-        {searchTerm.trim() !== "" && (
-          <div className="mt-3 max-h-90 overflow-y-auto rounded-xl border border-[#ead9ed] bg-white">
-            {searchResults.length > 0 ? (
-              searchResults.map((product, index) => (
-                <Link
-                  key={product.id}
-                  href={`/shop/${product.id}`}
-                  onClick={closeMenu}
+                <input
+                  type="text"
+                  autoFocus
+                  value={searchTerm}
+                  onChange={(event) =>
+                    setSearchTerm(event.target.value)
+                  }
+                  placeholder="Search fragrances..."
+                  aria-label="Search products"
                   className="
-                    group
-                    flex
-                    items-center
-                    gap-3
-                    border-b
-                    border-[#f0e5f2]
-                    px-4
-                    py-3
-                    transition-all
-                    duration-300
-                    last:border-b-0
-                    hover:bg-[#F6EAF8]
+                    min-w-0 flex-1 bg-transparent
+                    text-sm text-[#41004C] outline-none
+                    placeholder:text-[#9b70a3] md:text-base
                   "
-                  data-aos="fade-up"
-                  data-aos-delay={index * 50}
-                >
-                  <div
+                />
+
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm("")}
                     className="
-                      relative
-                      h-14
-                      w-14
-                      shrink-0
-                      overflow-hidden
-                      rounded-lg
-                      bg-[#F6EAF8]
+                      shrink-0 text-xs font-medium
+                      text-[#750080] transition-colors
+                      hover:text-[#41004C]
                     "
                   >
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      sizes="56px"
-                      className="
-                        object-cover
-                        transition
-                        duration-500
-                        group-hover:scale-110
-                      "
-                    />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-[#41004C]">
-                      {product.name}
-                    </p>
-
-                    <span className="text-xs text-[#9b70a3]">
-                      {product.category}
-                    </span>
-                  </div>
-
-                  <strong className="shrink-0 text-sm font-semibold text-[#750080]">
-                    ₦{Number(product.price).toLocaleString()}
-                  </strong>
-                </Link>
-              ))
-            ) : (
-              <div className="px-6 py-8 text-center">
-                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#F6EAF8] text-[#750080]">
-                  <Sparkles size={18} />
-                </div>
-
-                <p className="text-sm font-medium text-[#41004C]">
-                  No products found
-                </p>
-
-                <span className="mt-1 block text-xs text-[#9b70a3]">
-                  Try another fragrance name.
-                </span>
+                    Clear
+                  </button>
+                )}
               </div>
-            )}
-          </div>
-        )}
 
-        {/* DEFAULT SEARCH MESSAGE */}
-        {searchTerm.trim() === "" && (
-          <div className="px-2 pb-2 pt-5 text-center">
-            <p className="text-sm font-semibold tracking-[0.28em] text-[#750080]">
-              SEARCH DAMMYS ESSENCE
-            </p>
+              {/* SEARCH RESULTS */}
+              {searchTerm.trim() !== "" && (
+                <div className="mt-3 max-h-90 overflow-y-auto rounded-xl border border-[#ead9ed] bg-white">
+                  {searchResults.length > 0 ? (
+                    searchResults.map((product, index) => (
+                      <Link
+                        key={product.id}
+                        href={`/shop/${product.id}`}
+                        onClick={closeMenu}
+                        className="
+                          group flex items-center gap-3
+                          border-b border-[#f0e5f2] px-4 py-3
+                          transition-all duration-300
+                          last:border-b-0 hover:bg-[#F6EAF8]
+                        "
+                        data-aos="fade-up"
+                        data-aos-delay={index * 50}
+                      >
+                        <div
+                          className="
+                            relative h-14 w-14 shrink-0
+                            overflow-hidden rounded-lg bg-[#F6EAF8]
+                          "
+                        >
+                          {product.image ? (
+                            <Image
+                              src={product.image}
+                              alt={product.name}
+                              fill
+                              sizes="56px"
+                              className="
+                                object-cover transition duration-500
+                                group-hover:scale-110
+                              "
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <Sparkles
+                                size={18}
+                                className="text-[#750080]"
+                              />
+                            </div>
+                          )}
+                        </div>
 
-            <span className="mt-2 block text-xs text-[#9b70a3] md:text-sm">
-              Find your perfect fragrance by name or category.
-            </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-[#41004C]">
+                            {product.name}
+                          </p>
+                          <span className="text-xs text-[#9b70a3]">
+                            {product.category}
+                          </span>
+                        </div>
+
+                        <strong className="shrink-0 text-sm font-semibold text-[#750080]">
+                          ₦{Number(product.price).toLocaleString()}
+                        </strong>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="px-6 py-8 text-center">
+                      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#F6EAF8] text-[#750080]">
+                        <Sparkles size={18} />
+                      </div>
+
+                      <p className="text-sm font-medium text-[#41004C]">
+                        No products found
+                      </p>
+
+                      <span className="mt-1 block text-xs text-[#9b70a3]">
+                        Try another fragrance name.
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* DEFAULT SEARCH MESSAGE */}
+              {searchTerm.trim() === "" && (
+                <div className="px-2 pb-2 pt-5 text-center">
+                  <p className="text-sm font-semibold tracking-[0.28em] text-[#750080]">
+                    SEARCH DAMMYS ESSENCE
+                  </p>
+
+                  <span className="mt-2 block text-xs text-[#9b70a3] md:text-sm">
+                    Find your perfect fragrance by name or category.
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
     </header>
   );
 }

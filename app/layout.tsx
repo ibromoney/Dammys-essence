@@ -1,7 +1,9 @@
+
 import type { Metadata } from "next";
 import "./globals.css";
 import AOSProvider from "@/components/AOSProvider";
 import SiteChrome from "@/components/SiteChrome";
+import { CartProvider } from "@/context/CartContext";
 
 export const metadata: Metadata = {
   title: "Dammys Essence",
@@ -19,7 +21,9 @@ export default function RootLayout({
       <body>
         <AOSProvider />
 
-        <SiteChrome>{children}</SiteChrome>
+        <CartProvider>
+          <SiteChrome>{children}</SiteChrome>
+        </CartProvider>
       </body>
     </html>
   );

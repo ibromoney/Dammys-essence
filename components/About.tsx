@@ -1,24 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowRight,
-  Eye,
-  Gem,
-  Sparkles,
-  Star,
-} from "lucide-react";
+import { ArrowRight, Eye, Gem, Sparkles, Star } from "lucide-react";
 
 export default function About() {
   return (
     <main className="min-h-screen bg-[#FFF9FF] pt-17">
-
       {/* HERO */}
       <section className="relative overflow-hidden bg-[#41004C]">
         <div className="absolute -left-32 -top-32 h-72 w-72 rounded-full bg-[#750080]/30 blur-3xl" />
         <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-[#750080]/20 blur-3xl" />
 
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 py-24 md:py-32 lg:grid-cols-2 lg:gap-20">
-
           {/* HERO TEXT */}
           <div data-aos="fade-right">
             <p className="mb-5 text-xs font-medium uppercase tracking-[0.35em] text-[#D9B7DF]">
@@ -37,10 +29,10 @@ export default function About() {
               data-aos="fade-up"
               data-aos-delay="150"
             >
-              Dammys Essence was created around one simple belief:
-              what you wear should feel like an extension of who you are.
-              From captivating fragrances to timeless eyewear, every piece
-              is chosen to help you express your presence with confidence.
+              Dammys Essence was created around one simple belief: what you wear
+              should feel like an extension of who you are. From captivating
+              fragrances to timeless eyewear, every piece is chosen to help you
+              express your presence with confidence.
             </p>
 
             <div
@@ -58,19 +50,16 @@ export default function About() {
 
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-full border border-[#FFF9FF]/20 px-7 py-3.5 text-sm font-medium text-[#FFF9FF] transition duration-300 hover:border-[#D9B7DF] hover:text-[#D9B7DF]"
+                style={{ color: "#FFF9FF" }}
+                className="inline-flex items-center justify-center rounded-full border border-[#FFF9FF]/20 px-7 py-3.5 text-sm font-medium transition duration-300 hover:border-[#D9B7DF]"
               >
-                Get in Touch
+                <span style={{ color: "#FFF9FF" }}>Get in Touch</span>
               </Link>
             </div>
           </div>
 
           {/* HERO IMAGE */}
-          <div
-            className="relative"
-            data-aos="fade-left"
-            data-aos-delay="200"
-          >
+          <div className="relative" data-aos="fade-left" data-aos-delay="200">
             <div className="relative mx-auto max-w-lg overflow-hidden rounded-4xl border border-white/10 bg-[#750080]/20 p-2">
               <div className="relative aspect-4/5 overflow-hidden rounded-3xl">
                 <Image
@@ -113,7 +102,6 @@ export default function About() {
       {/* INTRODUCTION */}
       <section className="mx-auto max-w-7xl px-6 py-24 md:py-32">
         <div className="grid gap-14 lg:grid-cols-2 lg:items-center lg:gap-24">
-
           <div data-aos="fade-right">
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-[#750080]">
               Our Philosophy
@@ -135,15 +123,15 @@ export default function About() {
             </p>
 
             <p>
-              A fragrance can become a memory. A pair of sunglasses can
-              become part of your signature look. Together, they become
-              expressions of individuality.
+              A fragrance can become a memory. A pair of sunglasses can become
+              part of your signature look. Together, they become expressions of
+              individuality.
             </p>
 
             <p>
               That is why we focus on pieces that feel distinctive,
-              sophisticated, and effortless — products selected not simply
-              to follow trends, but to complement your identity.
+              sophisticated, and effortless — products selected not simply to
+              follow trends, but to complement your identity.
             </p>
           </div>
         </div>
@@ -152,11 +140,7 @@ export default function About() {
       {/* TWO WORLDS */}
       <section className="bg-[#F6EAF8]">
         <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
-
-          <div
-            className="mx-auto max-w-2xl text-center"
-            data-aos="fade-up"
-          >
+          <div className="mx-auto max-w-2xl text-center" data-aos="fade-up">
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-[#750080]">
               The Collection
             </p>
@@ -171,7 +155,6 @@ export default function About() {
           </div>
 
           <div className="mt-14 grid gap-6 md:grid-cols-2">
-
             {/* FRAGRANCE */}
             <div
               className="group relative overflow-hidden rounded-3xl bg-[#41004C]"
@@ -261,18 +244,13 @@ export default function About() {
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </section>
 
       {/* VALUES */}
       <section className="mx-auto max-w-7xl px-6 py-24 md:py-32">
-
-        <div
-          className="mx-auto max-w-2xl text-center"
-          data-aos="fade-up"
-        >
+        <div className="mx-auto max-w-2xl text-center" data-aos="fade-up">
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-[#750080]">
             What We Believe
           </p>
@@ -283,7 +261,6 @@ export default function About() {
         </div>
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
-
           {/* VALUE 1 */}
           <div
             className="rounded-3xl border border-[#41004C]/10 bg-white p-8 md:p-10"
@@ -294,13 +271,11 @@ export default function About() {
               <Gem size={21} />
             </div>
 
-            <h3 className="mt-7 font-serif text-2xl text-[#41004C]">
-              Quality
-            </h3>
+            <h3 className="mt-7 font-serif text-2xl text-[#41004C]">Quality</h3>
 
             <p className="mt-4 text-sm leading-7 text-[#41004C]/55">
-              We believe every product should feel worthy of being part of
-              your everyday life.
+              We believe every product should feel worthy of being part of your
+              everyday life.
             </p>
           </div>
 
@@ -319,8 +294,8 @@ export default function About() {
             </h3>
 
             <p className="mt-4 text-sm leading-7 text-[#41004C]/55">
-              Your style is personal. We curate products that help you
-              express what makes you different.
+              Your style is personal. We curate products that help you express
+              what makes you different.
             </p>
           </div>
 
@@ -339,11 +314,10 @@ export default function About() {
             </h3>
 
             <p className="mt-4 text-sm leading-7 text-[#41004C]/55">
-              Every selection is made with purpose, from the scent you wear
-              to the style you carry.
+              Every selection is made with purpose, from the scent you wear to
+              the style you carry.
             </p>
           </div>
-
         </div>
       </section>
 
@@ -362,8 +336,8 @@ export default function About() {
           </h2>
 
           <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[#FFF9FF]/60 md:text-base">
-            Find a fragrance that stays with you. Find eyewear that speaks
-            for you. Find pieces that feel unmistakably yours.
+            Find a fragrance that stays with you. Find eyewear that speaks for
+            you. Find pieces that feel unmistakably yours.
           </p>
 
           <Link
@@ -375,7 +349,6 @@ export default function About() {
           </Link>
         </div>
       </section>
-
     </main>
   );
 }

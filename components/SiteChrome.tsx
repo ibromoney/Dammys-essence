@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -10,6 +11,7 @@ export default function SiteChrome({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+ 
 
   const isAdminPage = pathname.startsWith("/admin");
 
@@ -19,7 +21,7 @@ export default function SiteChrome({
 
   return (
     <>
-      <Navbar cartCount={0} />
+      <Navbar />
       {children}
       <Footer />
     </>

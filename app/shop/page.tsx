@@ -26,40 +26,66 @@ function ShopContent() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   const category = searchParams.get("category");
   const collection = searchParams.get("collection");
 
   const filter: Filter =
-    category === "fragrance" || category === "sunglasses"
-      ? category
-      : "all";
+    category === "fragrance" || category === "sunglasses" ? category : "all";
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const supabase = createClient();
+    let active = true;
 
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
+    async function fetchProducts() {
+      setLoading(true);
+      setFetchError(false);
 
-      if (error) {
-        console.error("Error fetching products:", error);
-        setProducts([]);
-      } else {
-        setProducts(data ?? []);
+      try {
+        const supabase = createClient();
+
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching products:", error.message);
+
+          if (active) {
+            setProducts([]);
+            setFetchError(true);
+          }
+
+          return;
+        }
+
+        if (active) {
+          setProducts((data ?? []) as Product[]);
+        }
+      } catch (error) {
+        console.error("Unexpected product fetch error:", error);
+
+        if (active) {
+          setProducts([]);
+          setFetchError(true);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
-
-      setLoading(false);
-    };
+    }
 
     fetchProducts();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const filteredProducts = products.filter((product) => {
-    const matchesType =
-      filter === "all" || product.type === filter;
+    const matchesType = filter === "all" || product.type === filter;
 
     const matchesCollection =
       !collection ||
@@ -68,19 +94,18 @@ function ShopContent() {
     return matchesType && matchesCollection;
   });
 
-  const changeFilter = (newFilter: Filter) => {
+  function changeFilter(newFilter: Filter) {
     if (newFilter === "all") {
       router.push("/shop");
     } else {
       router.push(`/shop?category=${newFilter}`);
     }
-  };
+  }
 
   return (
     <main className="min-h-screen bg-[#FFF9FF] pt-24">
       <section className="mx-auto max-w-7xl px-6 py-16">
-
-        {/* HEADER */}
+        {/* Header */}
         <div className="text-center">
           <p
             className="mb-4 text-sm font-medium uppercase tracking-[0.3em] text-[#750080]"
@@ -106,25 +131,16 @@ function ShopContent() {
           </p>
         </div>
 
-        {/* FILTERS */}
+        {/* Category filters */}
         <div
           className="mt-12 flex flex-wrap items-center justify-center gap-3"
           data-aos="fade-up"
           data-aos-delay="200"
         >
           {[
-            {
-              label: "All",
-              value: "all" as Filter,
-            },
-            {
-              label: "Fragrances",
-              value: "fragrance" as Filter,
-            },
-            {
-              label: "Sunglasses",
-              value: "sunglasses" as Filter,
-            },
+            { label: "All", value: "all" as Filter },
+            { label: "Fragrances", value: "fragrance" as Filter },
+            { label: "Sunglasses", value: "sunglasses" as Filter },
           ].map((item) => (
             <button
               key={item.value}
@@ -141,7 +157,7 @@ function ShopContent() {
           ))}
         </div>
 
-        {/* ACTIVE COLLECTION */}
+        {/* Active collection */}
         {collection && (
           <div className="mt-8 text-center" data-aos="fade-up">
             <p className="text-xs font-medium uppercase tracking-[0.25em] text-[#750080]">
@@ -154,7 +170,7 @@ function ShopContent() {
           </div>
         )}
 
-        {/* LOADING */}
+        {/* Loading */}
         {loading ? (
           <div className="mt-20 flex flex-col items-center justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#F6EAF8] border-t-[#750080]" />
@@ -163,9 +179,27 @@ function ShopContent() {
               Loading our collection...
             </p>
           </div>
-        ) : filter === "sunglasses" &&
-          filteredProducts.length === 0 ? (
-          /* SUNGLASSES COMING SOON */
+        ) : fetchError ? (
+          /* Fetch error */
+          <div className="mt-20 text-center" role="alert">
+            <p className="font-serif text-3xl text-[#41004C]">
+              We couldn&apos;t load the collection
+            </p>
+
+            <p className="mt-3 text-sm text-[#41004C]/60">
+              Please check your connection and try again.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-6 rounded-full bg-[#41004C] px-7 py-3 text-sm font-medium text-white transition hover:bg-[#750080]"
+            >
+              Try again
+            </button>
+          </div>
+        ) : filter === "sunglasses" && filteredProducts.length === 0 ? (
+          /* Sunglasses coming soon */
           <div
             className="mx-auto mt-16 max-w-3xl overflow-hidden rounded-3xl border border-[#41004C]/10 bg-white p-10 text-center shadow-sm md:p-16"
             data-aos="zoom-in"
@@ -174,27 +208,15 @@ function ShopContent() {
               <Glasses size={34} strokeWidth={1.5} />
             </div>
 
-            <p
-              className="mt-8 text-xs font-medium uppercase tracking-[0.3em] text-[#750080]"
-              data-aos="fade-down"
-              data-aos-delay="100"
-            >
+            <p className="mt-8 text-xs font-medium uppercase tracking-[0.3em] text-[#750080]">
               Coming Soon
             </p>
 
-            <h2
-              className="mt-4 font-serif text-4xl text-[#41004C] md:text-5xl"
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
+            <h2 className="mt-4 font-serif text-4xl text-[#41004C] md:text-5xl">
               The Sunglasses Collection
             </h2>
 
-            <p
-              className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#41004C]/60 md:text-base"
-              data-aos="fade-up"
-              data-aos-delay="300"
-            >
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#41004C]/60 md:text-base">
               Something stylish is on the way. Our sunglasses collection is
               currently being curated and will be available soon.
             </p>
@@ -203,15 +225,13 @@ function ShopContent() {
               type="button"
               onClick={() => changeFilter("all")}
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#41004C] px-7 py-3.5 text-sm font-medium text-white transition hover:bg-[#750080]"
-              data-aos="zoom-in"
-              data-aos-delay="400"
             >
-              Explore Fragrances
+              Explore Collection
               <ArrowRight size={17} />
             </button>
           </div>
         ) : filteredProducts.length === 0 ? (
-          /* NO PRODUCTS */
+          /* No products */
           <div className="mt-20 text-center" data-aos="fade-up">
             <p className="font-serif text-3xl text-[#41004C]">
               No products available
@@ -222,7 +242,7 @@ function ShopContent() {
             </p>
           </div>
         ) : (
-          /* PRODUCTS */
+          /* Products */
           <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {filteredProducts.map((product, index) => (
               <article
@@ -231,8 +251,12 @@ function ShopContent() {
                 data-aos="fade-up"
                 data-aos-delay={(index % 3) * 100}
               >
-                {/* IMAGE */}
-                <div className="relative aspect-4/5 overflow-hidden bg-[#F6EAF8]">
+                {/* Image */}
+                <Link
+                  href={`/shop/${product.id}`}
+                  aria-label={`View ${product.name}`}
+                  className="relative block aspect-4/5 overflow-hidden bg-[#F6EAF8]"
+                >
                   <Image
                     src={product.image}
                     alt={product.name}
@@ -244,9 +268,9 @@ function ShopContent() {
                   <span className="absolute left-4 top-4 rounded-full bg-[#FFF9FF]/90 px-4 py-2 text-xs font-medium uppercase tracking-wider text-[#41004C] backdrop-blur-sm">
                     {product.category}
                   </span>
-                </div>
+                </Link>
 
-                {/* PRODUCT INFO */}
+                {/* Product information */}
                 <div className="p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -256,29 +280,27 @@ function ShopContent() {
 
                       {product.size && (
                         <p className="mt-1 text-sm text-[#41004C]/50">
-                          {product.type === "fragrance"
-                            ? "Size"
-                            : "Frame"}
-                          : {product.size}
+                          {product.type === "fragrance" ? "Size" : "Frame"}:{" "}
+                          {product.size}
                         </p>
                       )}
                     </div>
 
-                    <p className="text-lg font-semibold text-[#750080]">
-                      ₦{Number(product.price).toLocaleString()}
+                    <p className="shrink-0 text-lg font-semibold text-[#750080]">
+                      ₦{Number(product.price).toLocaleString("en-NG")}
                     </p>
                   </div>
 
-                  <p className="mt-4 text-sm leading-6 text-[#41004C]/60">
+                  <p className="mt-4 line-clamp-3 text-sm leading-6 text-[#41004C]/60">
                     {product.description}
                   </p>
 
-                  {/* VIEW PRODUCT BUTTON */}
                   <Link
                     href={`/shop/${product.id}`}
-                    className="mt-6 flex w-full items-center justify-center rounded-full bg-[#41004C] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#750080]"
+                    style={{ color: "#FFFFFF" }}
+                    className="mt-6 flex w-full items-center justify-center rounded-full bg-[#41004C] px-6 py-3 text-sm font-medium transition hover:bg-[#750080]"
                   >
-                    View Product
+                    <span style={{ color: "#FFFFFF" }}>View Product</span>
                   </Link>
                 </div>
               </article>

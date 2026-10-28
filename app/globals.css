@@ -3259,3 +3259,22 @@ html::-webkit-scrollbar {
   display: none;
 }
 
+/* =========================================================
+   FIX: TAILWIND LINK TEXT COLORS
+   ========================================================= */
+
+a.text-white,
+a.text-white:visited,
+a.text-white:hover,
+a.text-white:focus {
+  color: #ffffff !important;
+}
+
+a.text-\[\#FFF9FF\],
+a.text-\[\#FFF9FF\]:hover {
+  color: #fff9ff !important;
+}
+
+a.text-\[\#D9B7DF\]:hover {
+  color: #d9b7df !important;
+}
